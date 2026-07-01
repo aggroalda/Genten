@@ -1,0 +1,117 @@
+{
+  "id": "icYoMxHASDhEcBd3",
+  "name": "Buscar Reserva Cancelable Genten",
+  "active": true,
+  "versionId": "9f578e64-82c9-4579-af5b-f98795e577d5",
+  "activeVersionId": "9f578e64-82c9-4579-af5b-f98795e577d5",
+  "createdAt": "2026-06-17T01:12:18.930Z",
+  "updatedAt": "2026-06-17T03:52:54.204Z",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "Ln2qjCBZFr4FwM1S",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [],
+  "meta": { "templateCredsSetupCompleted": true },
+  "nodes": [
+    {
+      "parameters": { "workflowInputs": { "values": [{ "name": "telefono" }] } },
+      "id": "00068d30-648d-4dd3-bf45-5d67d5b21a8a",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-672, 96]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": { "__rl": true, "value": "37180ded-c6cf-800c-ada3-e405288bb35f", "mode": "list", "cachedResultName": "Clientes Genten" },
+        "returnAll": true,
+        "simple": false,
+        "options": {}
+      },
+      "id": "1734d360-2db6-47bd-9345-2aa0d1a4a409",
+      "name": "Busca cliente",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [-448, 96],
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst tel = String($('When Executed by Another Workflow').item.json.telefono || '').replace(/[^0-9]/g, '');\nconst clientes = $input.all();\nlet cliente_id = '';\nfor (const c of clientes) {\n  const p = c.json.properties || {};\n  const stored = String(p['Telefono']?.phone_number || '').replace(/[^0-9]/g, '');\n  if (stored && tel && (stored === tel || stored.endsWith(tel) || tel.endsWith(stored))) {\n    cliente_id = c.json.id;\n    break;\n  }\n}\nreturn [{ json: { encontrado: !!cliente_id, cliente_id } }];\n"
+      },
+      "id": "971695b5-3915-4ab8-8f38-38c83d391bbd",
+      "name": "Match cliente",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-336, 240]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [{ "leftValue": "={{ $json.encontrado }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d52eb94f-e206-4d81-aec1-7f13ba0b8975",
+      "name": "¿Cliente encontrado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-224, 96]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": { "__rl": true, "value": "37180ded-c6cf-80f7-a162-daeeb6b2d22b", "mode": "list", "cachedResultName": "Agenda Genten" },
+        "returnAll": true,
+        "simple": false,
+        "options": {}
+      },
+      "id": "e2346bbd-d1d5-43fc-82f9-178ee3c0116a",
+      "name": "Busca reservas agenda",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [0, 0],
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst clienteId = $('Match cliente').item.json.cliente_id;\nconst hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });\n\nconst reservas = $input.all().filter(i => {\n  const p = i.json && i.json.properties;\n  if (!p || !i.json.id) return false;\n  const clientes = (p['👤 Clientes Genten']?.relation || []).map(c => c.id);\n  if (!clientes.includes(clienteId)) return false;\n  const estado = p['Estado']?.select?.name || '';\n  const f = p['Fecha']?.date?.start ? String(p['Fecha'].date.start).slice(0, 10) : '';\n  return estado === 'Reservado' && f && f >= hoy;\n}).sort((a, b) => {\n  const fa = String(a.json.properties['Fecha'].date.start).slice(0, 10);\n  const fb = String(b.json.properties['Fecha'].date.start).slice(0, 10);\n  return fa < fb ? -1 : fa > fb ? 1 : 0;\n});\n\nif (reservas.length === 0) {\n  return [{ json: { encontrado: false, mensaje: 'No tienes reservas activas (Reservado) de hoy en adelante.' } }];\n}\n\nconst primera = reservas[0];\nconst p = primera.json.properties;\nconst nombre   = p['Titulo']?.title?.[0]?.plain_text || 'N/A';\nconst servicio = p['Servicio']?.select?.name || 'N/A';\nconst vehiculo = p['Vehiculo']?.select?.name || 'N/A';\nconst fecha    = p['Fecha']?.date?.start || 'N/A';\nconst hora     = p['Hora recepcion ']?.rich_text?.[0]?.plain_text || p['Hora recepcion']?.rich_text?.[0]?.plain_text || 'N/A';\n\nconst resumen = `${servicio} para ${vehiculo} el ${fecha} a las ${hora}`;\n\nreturn [{ json: {\n  encontrado: true,\n  page_id: primera.json.id,\n  nombre_cliente: nombre,\n  servicio, vehiculo, fecha, hora,\n  total_reservas: reservas.length,\n  resumen,\n  mensaje: `Encontré tu reserva: ${resumen}.`\n} }];\n"
+      },
+      "id": "aadd06f7-1e82-4326-b801-c4c3e0951f43",
+      "name": "Filtra reservas activas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [224, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst tel = $('When Executed by Another Workflow').item.json.telefono;\nreturn [{ json: {\n  encontrado: false,\n  mensaje: 'No encontré tu número en nuestra base de datos. ¿Tienes alguna reserva agendada con nosotros?'\n} }];\n"
+      },
+      "id": "cf14ed5e-b6f0-49ba-ac58-c2d38f8398e5",
+      "name": "Sin cliente registrado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [0, 192]
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": { "main": [[{ "node": "Busca cliente", "type": "main", "index": 0 }]] },
+    "Busca cliente": { "main": [[{ "node": "Match cliente", "type": "main", "index": 0 }]] },
+    "Match cliente": { "main": [[{ "node": "¿Cliente encontrado?", "type": "main", "index": 0 }]] },
+    "¿Cliente encontrado?": { "main": [[{ "node": "Busca reservas agenda", "type": "main", "index": 0 }], [{ "node": "Sin cliente registrado", "type": "main", "index": 0 }]] },
+    "Busca reservas agenda": { "main": [[{ "node": "Filtra reservas activas", "type": "main", "index": 0 }]] }
+  }
+}

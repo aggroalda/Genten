@@ -1,0 +1,42 @@
+{
+  "id": "Ln2qjCBZFr4FwM1S",
+  "name": "Manejador de Errores Genten",
+  "active": true,
+  "versionId": "8293c9ee-5d83-4d6d-b082-43e060bc564c",
+  "activeVersionId": "8293c9ee-5d83-4d6d-b082-43e060bc564c",
+  "createdAt": "2026-06-17T01:14:09.912Z",
+  "updatedAt": "2026-06-17T03:52:41.118Z",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "tags": [],
+  "meta": { "templateCredsSetupCompleted": true },
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "a32d07da-499a-416f-bc30-70fef19d8be6",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "chatId": "812074441",
+        "text": "=🔴 *ERROR EN N8N*\n\n📋 *Workflow:* {{ $json.workflow.name }}\n🔧 *Nodo:* {{ $json.execution.lastNodeExecuted }}\n⏱ *Fecha:* {{ new Date($json.execution.startedAt).toLocaleString('es-CL', {timeZone:'America/Santiago'}) }}\n\n❌ *Error:*\n`{{ $json.execution.error.message }}`\n\n🔗 [Ver ejecución]({{ $json.execution.url }})",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [192, 0],
+      "id": "b05f4563-b0b6-4d5a-848e-9814a305d2b2",
+      "name": "Send a text message1",
+      "webhookId": "0f216983-0fe8-4e61-a4a3-f502b08f4b2f"
+    }
+  ],
+  "connections": {
+    "Error Trigger": { "main": [[{ "node": "Send a text message1", "type": "main", "index": 0 }]] }
+  }
+}

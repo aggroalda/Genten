@@ -1,0 +1,132 @@
+{
+  "name": "Consultar Servicios Genten",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1b7a9c1d-4e3f-4d8b-9c2e-5f1a3b4c8d9e",
+      "name": "When called",
+      "type": "n8n-nodes-base.workflowTriggerNode",
+      "typeVersion": 1,
+      "position": [
+        50,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "database": "37180ded-c6cf-80f0-921e-000b02d52bb8",
+        "options": {
+          "returnAll": false,
+          "limit": 100
+        }
+      },
+      "id": "2c8b0d2e-5f4a-5e9c-ad3f-6g2b4c5d9e0f",
+      "name": "Get Servicios from Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [
+        250,
+        300
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "b2xixVdrVdJ6kMFC",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "filter",
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "h3i9j0k1l2m3n4o5",
+              "leftValue": "={{ $json.Vehiculo }}",
+              "rightValue": "={{ $('When called').item.json.vehiculo }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3d9c1e3f-6g5b-6f0d-be4g-7h3c5d6e0f1g",
+      "name": "Filter by Vehiculo",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "each",
+        "expression": "={{ {\n  \"servicio\": $json.Servicio,\n  \"precio\": $json.Precio,\n  \"descripcion\": $json.Descripcion || \"\",\n  \"vehiculo\": $json.Vehiculo\n} }}",
+        "options": {}
+      },
+      "id": "4e0d2f4g-7h6c-7g1e-cf5h-8i4d6e7f1g2h",
+      "name": "Format Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        750,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "When called": {
+      "main": [
+        [
+          {
+            "node": "Get Servicios from Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Servicios from Notion": {
+      "main": [
+        [
+          {
+            "node": "Filter by Vehiculo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter by Vehiculo": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "meta": {
+    "instanceId": "3e782aee398aa2d25e60cf54b3ac02dfd793e8faf8f1767ffb7f943905a32512"
+  }
+}

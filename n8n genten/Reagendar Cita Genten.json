@@ -1,0 +1,158 @@
+{
+  "id": "nX4oSbUCpYJCBqM2",
+  "name": "Reagendar Cita Genten",
+  "active": true,
+  "versionId": "1a632988-7911-407f-ac7c-b051825a0cae",
+  "activeVersionId": "1a632988-7911-407f-ac7c-b051825a0cae",
+  "createdAt": "2026-06-17T01:14:38.153Z",
+  "updatedAt": "2026-06-17T05:02:10.970Z",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "Ln2qjCBZFr4FwM1S",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [],
+  "meta": { "templateCredsSetupCompleted": true, "aiBuilderAssisted": true, "builderVariant": "mcp" },
+  "nodes": [
+    {
+      "parameters": { "workflowInputs": { "values": [{ "name": "page_id" }, { "name": "nueva_fecha" }, { "name": "nueva_hora" }] } },
+      "id": "4cdeccef-d14e-42f0-8825-739835f5c77e",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [-1328, 128]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "get",
+        "pageId": { "__rl": true, "mode": "id", "value": "={{ $('When Executed by Another Workflow').item.json.page_id }}" },
+        "simple": false
+      },
+      "id": "a3953ebb-ae59-43f9-b019-a0d0b31b5867",
+      "name": "Lee reserva actual",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [-1104, 128],
+      "retryOnFail": true,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst t = $('When Executed by Another Workflow').item.json;\nconst page = $('Lee reserva actual').item.json;\nconst p = (page && page.properties) || {};\n\nconst servicio = p['Servicio']?.select?.name || '';\nconst vehiculo = p['Vehiculo']?.select?.name || '';\nconst estado   = p['Estado']?.select?.name || '';\nconst fecha_actual = p['Fecha']?.date?.start ? String(p['Fecha'].date.start).slice(0, 10) : '';\nconst nombre   = p['Titulo']?.title?.[0]?.plain_text || '';\nconst precio   = p['Precio']?.number ?? 0;\nconst hora_actual = p['Hora recepcion ']?.rich_text?.[0]?.plain_text || '';\nconst cliente_id = p['👤 Clientes Genten']?.relation?.[0]?.id || null;\n\nfunction parseFecha(raw) {\n  if (!raw) return '';\n  raw = String(raw).trim();\n  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(raw)) return raw;\n  const d = new Date(raw);\n  return isNaN(d) ? '' : d.toISOString().slice(0, 10);\n}\nfunction parseHora(raw) {\n  if (!raw) return '';\n  raw = String(raw).trim();\n  if (/^\\d{1,2}:\\d{2}$/.test(raw)) return raw.padStart(5, '0');\n  return raw;\n}\n\nconst nueva_fecha = parseFecha(t.nueva_fecha);\nconst nueva_hora  = parseHora(t.nueva_hora);\nconst mismo_dia   = !!nueva_fecha && nueva_fecha === fecha_actual;\n\nreturn [{ json: { page_id: t.page_id, nueva_fecha, nueva_hora, servicio, vehiculo, estado, fecha_actual, nombre, mismo_dia, precio, hora_actual, cliente_id } }];\n"
+      },
+      "id": "2e233c32-a0cd-4cdf-b114-2f9ed6d2d4d7",
+      "name": "Prepara contexto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-880, 128]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "value": "5lbhx6ZMynMgTefM", "mode": "list", "cachedResultName": "Consultar Disponibilidad Genten" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": { "fecha": "={{ $json.nueva_fecha }}" },
+          "matchingColumns": [],
+          "schema": [{ "id": "fecha", "displayName": "fecha", "required": false, "display": true, "type": "string", "canBeUsedToMatch": true }]
+        },
+        "options": { "waitForSubWorkflow": true }
+      },
+      "id": "bfd43b65-b545-4d45-999e-40644aec1ca7",
+      "name": "Verifica disponibilidad",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [-656, 128]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst d = $json;\nconst c = $('Prepara contexto').item.json;\n\nconst esMoto = String(c.vehiculo || '').toLowerCase() === 'moto';\nconst servicio = String(c.servicio || '').toLowerCase();\nconst esFullDay = esMoto\n  ? servicio.includes('abrillantado de pintura')\n  : servicio.includes('completo exterior e interior');\n\nlet permitido = true;\nlet motivo = '';\n\nif (c.estado !== 'Reservado') {\n  permitido = false;\n  motivo = 'la reserva no está activa, no se puede reagendar';\n} else if (!c.nueva_fecha) {\n  permitido = false;\n  motivo = 'la nueva fecha no es válida';\n} else if (c.mismo_dia) {\n  permitido = true;\n} else if (d.dia_bloqueado_full_day) {\n  permitido = false;\n  motivo = 'ese día ya tiene reservado un trabajo de día completo';\n} else if (esFullDay && (d.total_citas || 0) > 0) {\n  permitido = false;\n  motivo = 'ese servicio ocupa el día completo y ese día ya tiene reservas';\n} else if (esMoto && !d.disponibilidad_motos) {\n  permitido = false;\n  motivo = 'ya no hay cupo para motos ese día';\n} else if (!esMoto && !d.disponibilidad_vehiculos) {\n  permitido = false;\n  motivo = 'ya no hay cupo para vehículos ese día';\n}\n\nreturn [{ json: { \n  permitido, motivo, \n  page_id: c.page_id, \n  nueva_fecha: c.nueva_fecha, \n  nueva_hora: c.nueva_hora, \n  fecha_actual: c.fecha_actual, \n  servicio: c.servicio, \n  vehiculo: c.vehiculo, \n  nombre: c.nombre,\n  precio: c.precio,\n  cliente_id: c.cliente_id\n} }];\n"
+      },
+      "id": "14a7df70-3215-42b6-ba2e-3a01fa15f08e",
+      "name": "Decide reagenda",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-448, 128]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [{ "leftValue": "={{ $json.permitido }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "165a1bd5-e04e-434e-8dcd-15f959c57b5a",
+      "name": "Permitido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [-224, 128]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": { "__rl": true, "mode": "id", "value": "={{ $('Decide reagenda').item.json.page_id }}" },
+        "propertiesUi": {
+          "propertyValues": [
+            { "key": "Fecha|date", "includeTime": false, "date": "={{ $('Decide reagenda').item.json.nueva_fecha }}" },
+            { "key": "Hora recepcion |rich_text", "textContent": "={{ $('Decide reagenda').item.json.nueva_hora }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "02cd3fc7-eee2-42f4-aee0-a211caa7dfb6",
+      "name": "Actualiza cita en Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [16, 0]
+    },
+    {
+      "parameters": {
+        "chatId": "812074441",
+        "text": "=🔄 *Cita reagendada*\n\n👤 *Cliente:* {{ $('Decide reagenda').item.json.nombre }}\n🚘 *Vehículo:* {{ $('Decide reagenda').item.json.vehiculo }}\n🧼 *Servicio:* {{ $('Decide reagenda').item.json.servicio }}\n📅 *Antes:* {{ $('Decide reagenda').item.json.fecha_actual }}\n📅 *Ahora:* {{ $('Decide reagenda').item.json.nueva_fecha }} a las {{ $('Decide reagenda').item.json.nueva_hora }}\n\n🔗 [Ver en Notion]({{ $json.url }})",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "0db1d87b-ea92-4ff3-98e4-ae2d8279b810",
+      "name": "Notificar reagenda por Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [240, 0],
+      "webhookId": "e2c5f05b-7ab5-49ec-95b0-d424a9f477d5"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst c = $('Decide reagenda').item.json;\nreturn [{ json: {\n  ok: true,\n  agendado: true,\n  mensaje: `Listo, tu cita quedó reagendada para el ${c.nueva_fecha} a las ${c.nueva_hora}. ¡Te esperamos!`\n} }];\n"
+      },
+      "id": "f32d1dda-db10-4e34-8f69-c6304bea7a9c",
+      "name": "Respuesta reagenda OK",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [448, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst c = $('Decide reagenda').item.json;\nreturn [{ json: {\n  ok: false,\n  agendado: false,\n  mensaje: `No pude reagendar: ${c.motivo}. ¿Te acomoda otra fecha u hora?`\n} }];\n"
+      },
+      "id": "c31df732-250e-4a47-8f65-d906eeded580",
+      "name": "Respuesta sin cupo reagenda",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [0, 288]
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": { "main": [[{ "node": "Lee reserva actual", "type": "main", "index": 0 }]] },
+    "Lee reserva actual": { "main": [[{ "node": "Prepara contexto", "type": "main", "index": 0 }]] },
+    "Prepara contexto": { "main": [[{ "node": "Verifica disponibilidad", "type": "main", "index": 0 }]] },
+    "Verifica disponibilidad": { "main": [[{ "node": "Decide reagenda", "type": "main", "index": 0 }]] },
+    "Decide reagenda": { "main": [[{ "node": "Permitido?", "type": "main", "index": 0 }]] },
+    "Permitido?": { "main": [[{ "node": "Actualiza cita en Notion", "type": "main", "index": 0 }], [{ "node": "Respuesta sin cupo reagenda", "type": "main", "index": 0 }]] },
+    "Actualiza cita en Notion": { "main": [[{ "node": "Notificar reagenda por Telegram", "type": "main", "index": 0 }]] },
+    "Notificar reagenda por Telegram": { "main": [[{ "node": "Respuesta reagenda OK", "type": "main", "index": 0 }]] }
+  }
+}

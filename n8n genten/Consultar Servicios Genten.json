@@ -1,0 +1,83 @@
+{
+  "id": "NnY3cPtza3ys29pf",
+  "name": "Consultar Servicios Genten",
+  "active": true,
+  "versionId": "039168a0-c608-441c-9c90-55a01ac2497c",
+  "activeVersionId": "039168a0-c608-441c-9c90-55a01ac2497c",
+  "createdAt": "2026-06-17T01:13:37.662Z",
+  "updatedAt": "2026-06-17T03:53:00.413Z",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "Ln2qjCBZFr4FwM1S",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [],
+  "meta": { "templateCredsSetupCompleted": true },
+  "nodes": [
+    {
+      "parameters": { "workflowInputs": { "values": [{ "name": "vehiculo" }] } },
+      "id": "8ee3d9d2-bd1f-4693-b72f-e29abb6a06b0",
+      "name": "When called",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": { "__rl": true, "value": "37580ded-c6cf-80fc-99cc-e117835d21a6", "mode": "list", "cachedResultName": "Servicios Genten" },
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "f8103ffc-72ed-4c13-9e02-6e67a64143af",
+      "name": "Get Servicios",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [224, 0],
+      "retryOnFail": true,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+          "conditions": [{ "leftValue": "={{ $json.property_tipo }}", "rightValue": "={{ $(\"When called\").item.json.vehiculo }}", "operator": { "type": "string", "operation": "equals" } }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d99703f9-baf1-44dc-962d-b398fd5f39a4",
+      "name": "Filter by Vehiculo",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [448, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "servicio", "name": "servicio", "value": "={{ $json.property_nombre }}", "type": "string" },
+            { "id": "precio", "name": "precio", "value": "={{ $json.property_precio }}", "type": "number" },
+            { "id": "descripcion", "name": "descripcion", "value": "={{ $json.property_descripci_n || \"\" }}", "type": "string" },
+            { "id": "vehiculo", "name": "vehiculo", "value": "={{ $json.property_tipo }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a51a0f5e-9d79-4977-ba49-112117398278",
+      "name": "Format Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [672, 0]
+    }
+  ],
+  "connections": {
+    "When called": { "main": [[{ "node": "Get Servicios", "type": "main", "index": 0 }]] },
+    "Get Servicios": { "main": [[{ "node": "Filter by Vehiculo", "type": "main", "index": 0 }]] },
+    "Filter by Vehiculo": { "main": [[{ "node": "Format Output", "type": "main", "index": 0 }]] }
+  }
+}

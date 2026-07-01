@@ -1,0 +1,203 @@
+{
+  "name": "main",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -192,
+        -256
+      ],
+      "id": "0c442cd5-22cf-4ee5-b83a-266ca07ca39e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -336,
+        -48
+      ],
+      "id": "3f383a25-516b-4282-ba37-1e64110f990c",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Hqb9lpryFPrz3HGL",
+          "name": "n8n whatsapp agent"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        -192,
+        -48
+      ],
+      "id": "e4c9a170-2717-4e8f-861c-20e5efca9efd",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "S4R8RGN5xnjBzTHI",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Usa esta herramienta cuando se pregunte por los servicios, servicios",
+        "tableName": {
+          "__rl": true,
+          "value": "servicios",
+          "mode": "list",
+          "cachedResultName": "servicios"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        -48
+      ],
+      "id": "ea1c5b4d-5f69-4d18-806e-63db46979459",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "OJIq8t9vIiDUFLPH",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        96
+      ],
+      "id": "6fef74f8-8d84-4c46-aed7-c9ce2e0f351d",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "Hqb9lpryFPrz3HGL",
+          "name": "n8n whatsapp agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -416,
+        -256
+      ],
+      "id": "2e0686bd-bf74-4ea9-9eb8-3bdb95956c62",
+      "name": "When chat message received",
+      "webhookId": "648fb314-26da-4679-b18a-7f5d0e249040"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c8225963-58e8-46cf-9fdf-5b5d07878b30",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3e782aee398aa2d25e60cf54b3ac02dfd793e8faf8f1767ffb7f943905a32512"
+  },
+  "nodeGroups": [],
+  "id": "clfo3t1sSmpqsMmG",
+  "tags": [
+    {
+      "updatedAt": "2026-06-12T20:33:01.025Z",
+      "createdAt": "2026-06-12T20:33:01.025Z",
+      "id": "r1q0DI3Mb58GwPb9",
+      "name": "genten+supabase+chatwoot"
+    }
+  ]
+}

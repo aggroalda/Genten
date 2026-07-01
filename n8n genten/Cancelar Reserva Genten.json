@@ -1,0 +1,71 @@
+{
+  "id": "k8RAoEZIDpMlPme8",
+  "name": "Cancelar Reserva Genten",
+  "active": true,
+  "versionId": "ca6771dc-61a2-48b6-8ae9-230dd5656549",
+  "activeVersionId": "ca6771dc-61a2-48b6-8ae9-230dd5656549",
+  "createdAt": "2026-06-17T01:12:34.809Z",
+  "updatedAt": "2026-06-17T03:53:04.164Z",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "Ln2qjCBZFr4FwM1S",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [],
+  "meta": { "templateCredsSetupCompleted": true },
+  "nodes": [
+    {
+      "parameters": { "workflowInputs": { "values": [{ "name": "page_id" }, { "name": "nombre_cliente" }, { "name": "fecha" }, { "name": "servicio" }, { "name": "vehiculo" }] } },
+      "id": "b93b6f22-428e-45de-8fdf-c44b05c33b07",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": { "__rl": true, "value": "={{ $('When Executed by Another Workflow').item.json.page_id }}", "mode": "id" },
+        "propertiesUi": { "propertyValues": [{ "key": "Estado|select", "selectValue": "Cancelado" }] },
+        "options": {}
+      },
+      "id": "9d057388-32bf-4bd2-b505-a8363b4fe284",
+      "name": "Cancela en Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [224, 0]
+    },
+    {
+      "parameters": {
+        "chatId": "812074441",
+        "text": "=❌ *Reserva cancelada*\n\n👤 *Cliente:* {{ $('When Executed by Another Workflow').item.json.nombre_cliente }}\n🚘 *Vehículo:* {{ $('When Executed by Another Workflow').item.json.vehiculo }}\n🧼 *Servicio:* {{ $('When Executed by Another Workflow').item.json.servicio }}\n📅 *Fecha:* {{ $('When Executed by Another Workflow').item.json.fecha }}\n\n🔗 [Ver en Notion]({{ $json.url }})",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "9c989d3f-363c-4b39-bffe-cd9efa6dd991",
+      "name": "Notificar cancelación por Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [448, 0],
+      "webhookId": "67caf086-5637-45f9-80c4-a470b3c80fcd"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn [{ json: {\n  ok: true,\n  mensaje: 'Tu reserva ha sido cancelada correctamente. Cuando quieras agendar de nuevo, aquí estaremos.'\n} }];\n"
+      },
+      "id": "2763afa5-06c7-439b-b7cb-17533981f502",
+      "name": "Respuesta cancelación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [672, 0]
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": { "main": [[{ "node": "Cancela en Notion", "type": "main", "index": 0 }]] },
+    "Cancela en Notion": { "main": [[{ "node": "Notificar cancelación por Telegram", "type": "main", "index": 0 }]] },
+    "Notificar cancelación por Telegram": { "main": [[{ "node": "Respuesta cancelación", "type": "main", "index": 0 }]] }
+  }
+}

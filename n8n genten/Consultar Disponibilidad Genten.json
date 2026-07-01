@@ -1,0 +1,58 @@
+{
+  "id": "5lbhx6ZMynMgTefM",
+  "name": "Consultar Disponibilidad Genten",
+  "active": true,
+  "versionId": "42e5f7d6-a63f-4fa4-b97c-90a33d38a6f9",
+  "activeVersionId": "42e5f7d6-a63f-4fa4-b97c-90a33d38a6f9",
+  "createdAt": "2026-06-17T01:13:17.887Z",
+  "updatedAt": "2026-06-17T03:52:46.631Z",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "tags": [],
+  "meta": { "templateCredsSetupCompleted": true },
+  "nodes": [
+    {
+      "parameters": { "workflowInputs": { "values": [{ "name": "fecha" }] } },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "id": "d094f3f4-b094-462a-8e37-8df6eb7d8075",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": { "__rl": true, "value": "37180ded-c6cf-80f7-a162-daeeb6b2d22b", "mode": "list", "cachedResultName": "Agenda Genten" },
+        "returnAll": true,
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [224, 0],
+      "id": "d0fff9a5-9a73-4979-a04b-c898f6eab16e",
+      "name": "Consulta agenda ese día",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst fecha = $('When Executed by Another Workflow').item.json.fecha;\n\n// ── Solo citas REALES de esa fecha (inmune al timezone) ──────\nconst items = $input.all().filter(it => {\n  const p = it.json && it.json.properties;\n  if (!it.json || !it.json.id || !p) return false;\n  const start = p['Fecha']?.date?.start || '';\n  return String(start).slice(0, 10) === fecha;\n});\n\n// ── Separar vehículos y motos ───────────────────────\nconst vehiculos = [];\nconst motos     = [];\n\nfor (const item of items) {\n  const props    = item.json.properties || {};\n  const tipo     = props['Vehiculo']?.select?.name?.toLowerCase() || '';\n  const servicio = props['Servicio']?.select?.name || '';\n  const hora     = props['Hora recepcion ']?.rich_text?.[0]?.plain_text\n                || props['Hora recepcion']?.rich_text?.[0]?.plain_text\n                || '';\n\n  if (tipo === 'moto') {\n    motos.push({ servicio, hora });\n  } else {\n    vehiculos.push({ servicio, hora });\n  }\n}\n\n// ── Reglas de capacidad ─────────────────────────\nconst MAX_VEHICULOS = 2;\nconst MAX_MOTOS     = 1;\nconst HORARIO       = '09:00 a 15:00';   // recepción en rango continuo, no slots fijos\n\n// Trabajos de día completo\nconst tieneFullDayVehiculo = vehiculos.some(v =>\n  v.servicio.toLowerCase().includes('completo exterior e interior')\n);\nconst tieneFullDayMoto = motos.some(m =>\n  m.servicio.toLowerCase().includes('abrillantado de pintura')\n);\n// Un trabajo de día completo (moto O vehículo) ocupa TODO el taller ese día.\nconst diaBloqueado = tieneFullDayVehiculo || tieneFullDayMoto;\n\n// ── Disponibilidad vehículos (tope por conteo, máx 2/día) ──\nlet cupos_vehiculos = 0;\nlet mensaje_vehiculos = '';\nif (diaBloqueado) {\n  mensaje_vehiculos = 'Día reservado por un trabajo de día completo. Sin cupos ese día.';\n} else {\n  cupos_vehiculos = Math.max(0, MAX_VEHICULOS - vehiculos.length);\n  mensaje_vehiculos = cupos_vehiculos === 0\n    ? 'Sin cupos disponibles para vehículos ese día.'\n    : `Quedan ${cupos_vehiculos} cupo(s) para vehículos ese día. Recepción entre ${HORARIO}.`;\n}\n\n// ── Disponibilidad motos (máx 1/día) ───────────────\nlet mensaje_motos = '';\nif (diaBloqueado) {\n  mensaje_motos = 'Día reservado por un trabajo de día completo. Sin cupo ese día.';\n} else if (motos.length >= MAX_MOTOS) {\n  mensaje_motos = 'Sin cupo disponible para motos ese día.';\n} else {\n  mensaje_motos = `Cupo disponible para motos ese día. Recepción entre ${HORARIO}.`;\n}\n\n// ── Resumen de lo ya agendado ────────────────────\nconst detalle = items.length === 0\n  ? 'Ninguna cita agendada ese día.'\n  : items.map(i => {\n      const p = i.json.properties || {};\n      const nombre   = p['Titulo']?.title?.[0]?.plain_text || 'N/A';\n      const servicio = p['Servicio']?.select?.name || 'N/A';\n      const hora     = p['Hora recepcion ']?.rich_text?.[0]?.plain_text\n                    || p['Hora recepcion']?.rich_text?.[0]?.plain_text || 'N/A';\n      return `- ${nombre}: ${servicio} a las ${hora}`;\n    }).join('\\n');\n\n// ── Respuesta final ──────────────────────────\nreturn [{\n  json: {\n    fecha,\n    total_citas:          items.length,\n    vehiculos_agendados:  vehiculos.length,\n    motos_agendadas:      motos.length,\n    cupos_vehiculos,\n    horario_recepcion:    HORARIO,\n    dia_bloqueado_full_day: diaBloqueado,\n    disponibilidad_vehiculos: !diaBloqueado && vehiculos.length < MAX_VEHICULOS,\n    disponibilidad_motos:     !diaBloqueado && motos.length < MAX_MOTOS,\n    mensaje_vehiculos,\n    mensaje_motos,\n    detalle_agendado: detalle,\n    resumen: `Fecha: ${fecha}. ${mensaje_vehiculos} ${mensaje_motos} Detalle: ${detalle}`\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [448, 0],
+      "id": "970cdc68-217b-45f1-84db-1ad818ee818e",
+      "name": "Procesa disponibilidad"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": { "main": [[{ "node": "Consulta agenda ese día", "type": "main", "index": 0 }]] },
+    "Consulta agenda ese día": { "main": [[{ "node": "Procesa disponibilidad", "type": "main", "index": 0 }]] }
+  }
+}

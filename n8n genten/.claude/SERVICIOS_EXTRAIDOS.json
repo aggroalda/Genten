@@ -1,0 +1,100 @@
+{
+  "servicios": [
+    {
+      "vehiculo": "Auto",
+      "servicio": "Lavado básico exterior",
+      "precio": 15000,
+      "descripcion": "Lavado exterior básico"
+    },
+    {
+      "vehiculo": "Auto",
+      "servicio": "Lavado completo exterior",
+      "precio": 20000,
+      "descripcion": "Lavado exterior completo"
+    },
+    {
+      "vehiculo": "Auto",
+      "servicio": "Lavado completo exterior e interior",
+      "precio": 45000,
+      "descripcion": "Lavado exterior e interior completo"
+    },
+    {
+      "vehiculo": "Auto",
+      "servicio": "Limpieza interior",
+      "precio": 20000,
+      "descripcion": "Limpieza interior únicamente"
+    },
+    {
+      "vehiculo": "Camioneta",
+      "servicio": "Lavado básico exterior",
+      "precio": 18000,
+      "descripcion": "Lavado exterior básico"
+    },
+    {
+      "vehiculo": "Camioneta",
+      "servicio": "Lavado completo exterior",
+      "precio": 23000,
+      "descripcion": "Lavado exterior completo"
+    },
+    {
+      "vehiculo": "Camioneta",
+      "servicio": "Lavado completo exterior e interior",
+      "precio": 48000,
+      "descripcion": "Lavado exterior e interior completo"
+    },
+    {
+      "vehiculo": "Camioneta",
+      "servicio": "Limpieza interior",
+      "precio": 23000,
+      "descripcion": "Limpieza interior únicamente"
+    },
+    {
+      "vehiculo": "SUV",
+      "servicio": "Lavado básico exterior",
+      "precio": 18000,
+      "descripcion": "Lavado exterior básico"
+    },
+    {
+      "vehiculo": "SUV",
+      "servicio": "Lavado completo exterior",
+      "precio": 23000,
+      "descripcion": "Lavado exterior completo"
+    },
+    {
+      "vehiculo": "SUV",
+      "servicio": "Lavado completo exterior e interior",
+      "precio": 48000,
+      "descripcion": "Lavado exterior e interior completo"
+    },
+    {
+      "vehiculo": "SUV",
+      "servicio": "Limpieza interior",
+      "precio": 23000,
+      "descripcion": "Limpieza interior únicamente"
+    },
+    {
+      "vehiculo": "Moto",
+      "servicio": "Lavado básico",
+      "precio": 15000,
+      "descripcion": "Lavado básico"
+    },
+    {
+      "vehiculo": "Moto",
+      "servicio": "Lavado + descontaminado full",
+      "precio": 20000,
+      "descripcion": "Lavado con descontaminado completo"
+    },
+    {
+      "vehiculo": "Moto",
+      "servicio": "Abrillantado de pintura",
+      "precio": 60000,
+      "descripcion": "Abrillantado de pintura - motor frío"
+    },
+    {
+      "vehiculo": "Moto",
+      "servicio": "Abrillantado de cromados",
+      "precio": 30000,
+      "descripcion": "Abrillantado de cromados"
+    }
+  ]
+}

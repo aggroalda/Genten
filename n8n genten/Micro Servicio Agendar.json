@@ -1,0 +1,217 @@
+{
+  "id": "r2Cq0W0RQeZyDoBW",
+  "name": "Micro Servicio Agendar",
+  "active": true,
+  "versionId": "c5d7fa4b-925e-4fb9-8ac3-beb50ff7fabd",
+  "activeVersionId": "c5d7fa4b-925e-4fb9-8ac3-beb50ff7fabd",
+  "createdAt": "2026-06-17T01:14:23.076Z",
+  "updatedAt": "2026-06-17T03:53:36.469Z",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "Ln2qjCBZFr4FwM1S",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [],
+  "meta": { "templateCredsSetupCompleted": true, "aiBuilderAssisted": true, "builderVariant": "mcp" },
+  "nodes": [
+    {
+      "parameters": { "workflowInputs": { "values": [{ "name": "nombre" }, { "name": "telefono" }, { "name": "vehiculo" }, { "name": "servicio" }, { "name": "fecha_recepcion" }, { "name": "hora" }] } },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-240, 272],
+      "id": "111bfb78-a015-44e4-9ce8-1a3efa617540",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst input = $('When Executed by Another Workflow').item.json;\n\nfunction parseDate(raw) {\n  if (!raw) return null;\n  raw = String(raw).trim();\n  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(raw)) return raw;\n  const parsed = new Date(raw);\n  if (!isNaN(parsed)) return parsed.toISOString().split('T')[0];\n  const hoy = new Date();\n  const r = raw.toLowerCase();\n  if (r === 'hoy')    return hoy.toISOString().split('T')[0];\n  if (r === 'mañana') { hoy.setDate(hoy.getDate() + 1); return hoy.toISOString().split('T')[0]; }\n  return null;\n}\n\nconst fecha = parseDate(input.fecha_recepcion || input['fecha_recepcion'] || input.fecha);\nif (!fecha) {\n  throw new Error(`Fecha inválida recibida: \"${input.fecha_recepcion}\". Se requiere formato YYYY-MM-DD.`);\n}\n\nfunction parseHora(raw) {\n  if (!raw) return null;\n  raw = String(raw).trim();\n  if (/^\\d{2}:\\d{2}$/.test(raw)) return raw;\n  if (/^\\d{1,2}:\\d{2}$/.test(raw)) return raw.padStart(5, '0');\n  if (raw === '9:00' || raw === '9') return '09:00';\n  if (raw === '15:00' || raw === '15') return '15:00';\n  return raw;\n}\n\nconst sinAcentos = (s) => String(s || '')\n  .toLowerCase()\n  .normalize('NFD').replace(/[̀-ͯ]/g, '')\n  .trim();\n\nfunction normalizeVehiculo(raw) {\n  const v = sinAcentos(raw);\n  if (!v) return '';\n  if (v.includes('moto')) return 'Moto';\n  if (v.includes('camioneta') || v.includes('pickup') || v.includes('pick up')) return 'Camioneta';\n  if (v.includes('suv')) return 'SUV';\n  if (v.includes('auto') || v.includes('sedan') || v.includes('automovil') || v.includes('vehiculo')) return 'Auto';\n  return String(raw).trim();\n}\n\nfunction normalizeServicio(raw) {\n  const s = sinAcentos(raw);\n  if (!s) return '';\n  if (s.includes('completo') && s.includes('interior')) return 'Lavado completo exterior e interior';\n  if (s.includes('completo') && s.includes('exterior')) return 'Lavado completo exterior';\n  if (s.includes('basico') && s.includes('exterior'))   return 'Lavado básico exterior';\n  if (s.includes('descontaminad'))                      return 'Lavado + descontaminado full';\n  if (s.includes('abrillantado') && s.includes('pintura')) return 'Abrillantado de pintura';\n  if (s.includes('abrillantado') && (s.includes('cromad') || s.includes('cromo'))) return 'Abrillantado de cromados';\n  if (s.includes('limpieza') && s.includes('interior')) return 'Limpieza interior';\n  if (s.includes('interior'))                           return 'Limpieza interior';\n  if (s.includes('basico'))                             return 'Lavado básico';\n  return String(raw).trim();\n}\n\nconst vehiculo = normalizeVehiculo(input.vehiculo);\nconst servicio = normalizeServicio(input.servicio);\n\nreturn [{\n  json: {\n    nombre:    String(input.nombre  || '').trim(),\n    telefono:  String(input.telefono|| '').trim(),\n    vehiculo,\n    servicio,\n    fecha_recepcion: fecha,\n    hora:      parseHora(input.hora) || String(input.hora || '').trim()\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [0, 160],
+      "id": "baf6d073-c496-4c9a-bd9d-06ba86b7a199",
+      "name": "Normalizar datos entrada"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": { "__rl": true, "mode": "id", "value": "37580dedc6cf80fc99cce117835d21a6" },
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "b8881308-d2cc-43aa-891f-e7e9426e9a83",
+      "name": "Get Servicios",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [0, 0],
+      "retryOnFail": true,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst n = $('Normalizar datos entrada').first().json;\nconst servicios = $input.all().map(i => i.json);\n\nconst norm = (s) => String(s || '')\n  .toLowerCase()\n  .normalize('NFD').replace(/[̀-ͯ]/g, '')\n  .trim();\n\n// Notion (simple:true) devuelve las claves como property_tipo / property_nombre / property_precio\nconst match = servicios.find(s =>\n  norm(s.property_tipo) === norm(n.vehiculo) && norm(s.property_nombre) === norm(n.servicio)\n);\n\nconst precio = (match && match.property_precio != null) ? Number(match.property_precio) : null;\n\nreturn [{\n  json: { ...n, precio },\n  pairedItem: { item: 0 }\n}];\n"
+      },
+      "id": "2804d8ad-a7bd-40e0-8c5f-853df7d48717",
+      "name": "Asigna precio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [160, 0]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "value": "5lbhx6ZMynMgTefM", "mode": "list", "cachedResultName": "Consultar Disponibilidad Genten" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": { "fecha": "={{ $('Normalizar datos entrada').item.json.fecha_recepcion }}" },
+          "matchingColumns": [],
+          "schema": [{ "id": "fecha", "displayName": "fecha", "required": false, "display": true, "type": "string", "canBeUsedToMatch": true }],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": { "waitForSubWorkflow": true }
+      },
+      "id": "60502662-d474-4722-b0b0-2d22c314d93a",
+      "name": "Verifica disponibilidad",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [224, 160]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst d = $json;                 // resultado de Consultar Disponibilidad\nconst n = $('Normalizar datos entrada').item.json;\n\nconst tipo     = String(n.vehiculo || '').toLowerCase();\nconst esMoto   = tipo === 'moto';\nconst servicio = String(n.servicio || '').toLowerCase();\nconst esFullDay = esMoto\n  ? servicio.includes('abrillantado de pintura')\n  : servicio.includes('completo exterior e interior');\n\nlet permitido = true;\nlet motivo = '';\n\nif (d.dia_bloqueado_full_day) {\n  permitido = false;\n  motivo = 'ese día ya tiene reservado un trabajo de día completo';\n} else if (esFullDay && (d.total_citas || 0) > 0) {\n  permitido = false;\n  motivo = 'ese servicio ocupa el día completo y ese día ya tiene reservas';\n} else if (esMoto && !d.disponibilidad_motos) {\n  permitido = false;\n  motivo = 'ya no hay cupo para motos ese día';\n} else if (!esMoto && !d.disponibilidad_vehiculos) {\n  permitido = false;\n  motivo = 'ya no hay cupo para vehículos ese día';\n}\n\nreturn [{ json: { permitido, motivo, fecha: n.fecha_recepcion } }];\n"
+      },
+      "id": "d14e4eef-810a-45f0-b069-b1a78625662a",
+      "name": "Decide cupo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 160]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+          "conditions": [{ "id": "cupo-1", "leftValue": "={{ $json.permitido }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5e530eb5-8778-49a6-949c-62390a6b516d",
+      "name": "¿Hay cupo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [592, 160]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": { "__rl": true, "value": "37180ded-c6cf-800c-ada3-e405288bb35f", "mode": "list", "cachedResultName": "Clientes Genten" },
+        "filterType": "manual",
+        "filters": { "conditions": [{ "key": "Telefono|phone_number", "condition": "equals", "phoneNumberValue": "={{ $('When Executed by Another Workflow').item.json.telefono }}" }] },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [144, 528],
+      "id": "237cf842-b7b5-40bc-8464-73099b0bb616",
+      "name": "revisa_telefono_cliente_en_bd",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+          "conditions": [{ "id": "72f88705-e1dd-4645-9c7e-11c69ea1376a", "leftValue": "={{ $json.id }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [352, 432],
+      "id": "73432f53-3303-4333-bd2a-15d24357625b",
+      "name": "If client in data base"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": { "__rl": true, "value": "37180ded-c6cf-800c-ada3-e405288bb35f", "mode": "list", "cachedResultName": "Clientes Genten" },
+        "title": "={{ $('Normalizar datos entrada').first().json.nombre }}",
+        "propertiesUi": { "propertyValues": [{ "key": "Telefono|phone_number", "phoneValue": "={{ $('Normalizar datos entrada').first().json.telefono }}" }] },
+        "blockUi": { "blockValues": [] },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [544, 576],
+      "id": "9bbab5fb-583b-410b-b08e-074173818c2b",
+      "name": "Crea cliente en Notion Clientes Genten"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": { "__rl": true, "value": "37180ded-c6cf-80f7-a162-daeeb6b2d22b", "mode": "list", "cachedResultName": "Agenda Genten" },
+        "title": "={{ $('Normalizar datos entrada').item.json.nombre }} - {{ $('Normalizar datos entrada').item.json.servicio }}",
+        "propertiesUi": {
+          "propertyValues": [
+            { "key": "👤 Clientes Genten|relation", "relationValue": ["={{ $json.id }}"] },
+            { "key": "Vehiculo|select", "selectValue": "={{ $('Normalizar datos entrada').item.json.vehiculo }}" },
+            { "key": "Servicio|select", "selectValue": "={{ $('Normalizar datos entrada').item.json.servicio }}" },
+            { "key": "Estado|select", "selectValue": "Reservado" },
+            { "key": "Hora recepcion |rich_text", "textContent": "={{ $('Normalizar datos entrada').item.json.hora }}" },
+            { "key": "Fecha|date", "includeTime": false, "date": "={{ $('Normalizar datos entrada').item.json.fecha_recepcion }}" },
+            { "key": "Precio|number", "numberValue": "={{ $('Asigna precio').item.json.precio }}" }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [720, 432],
+      "id": "7b0eb431-fc20-4643-abd0-76d911cef176",
+      "name": "Crea nueva agenda"
+    },
+    {
+      "parameters": {
+        "chatId": "812074441",
+        "text": "=🚗 *Nueva cita agendada*\n\n👤 *Cliente:* {{ $('Normalizar datos entrada').item.json.nombre }}\n📞 *Teléfono:* {{ $('Normalizar datos entrada').item.json.telefono }}\n🚘 *Vehículo:* {{ $('Normalizar datos entrada').item.json.vehiculo }}\n🧼 *Servicio:* {{ $('Normalizar datos entrada').item.json.servicio }}\n💰 *Precio:* ${{ $('Asigna precio').item.json.precio?.toLocaleString('es-CL') }}\n📅 *Fecha:* {{ $('Normalizar datos entrada').item.json.fecha_recepcion }}\n⏰ *Hora:* {{ $('Normalizar datos entrada').item.json.hora }}\n\n🔗 [Ver en Notion]({{ $json.url }})",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [992, 416],
+      "id": "dbb6fb37-5600-43c7-a6bc-dfcb8b7643ec",
+      "name": "Notificar nueva agenda por Telegram",
+      "webhookId": "de5cc593-8515-4a6e-8734-d77c1e480654"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst n = $('Normalizar datos entrada').item.json;\nconst motivo = $('Decide cupo').item.json.motivo || 'ese día no tiene cupo';\nreturn [{ json: {\n  ok: false,\n  agendado: false,\n  fecha: n.fecha_recepcion,\n  mensaje: `No se pudo agendar para ${n.fecha_recepcion}: ${motivo}. Informa al cliente que ese día no hay cupo y ofrécele otro día.`\n} }];\n"
+      },
+      "id": "2d165ca8-22a3-4388-afc5-5764c7d476ba",
+      "name": "Respuesta sin cupo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [832, 176]
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": { "main": [[{ "node": "Normalizar datos entrada", "type": "main", "index": 0 }]] },
+    "Normalizar datos entrada": { "main": [[{ "node": "Get Servicios", "type": "main", "index": 0 }]] },
+    "Get Servicios": { "main": [[{ "node": "Asigna precio", "type": "main", "index": 0 }]] },
+    "Asigna precio": { "main": [[{ "node": "Verifica disponibilidad", "type": "main", "index": 0 }]] },
+    "Verifica disponibilidad": { "main": [[{ "node": "Decide cupo", "type": "main", "index": 0 }]] },
+    "Decide cupo": { "main": [[{ "node": "¿Hay cupo?", "type": "main", "index": 0 }]] },
+    "¿Hay cupo?": { "main": [[{ "node": "revisa_telefono_cliente_en_bd", "type": "main", "index": 0 }], [{ "node": "Respuesta sin cupo", "type": "main", "index": 0 }]] },
+    "revisa_telefono_cliente_en_bd": { "main": [[{ "node": "If client in data base", "type": "main", "index": 0 }]] },
+    "If client in data base": { "main": [[{ "node": "Crea nueva agenda", "type": "main", "index": 0 }], [{ "node": "Crea cliente en Notion Clientes Genten", "type": "main", "index": 0 }]] },
+    "Crea cliente en Notion Clientes Genten": { "main": [[{ "node": "Crea nueva agenda", "type": "main", "index": 0 }]] },
+    "Crea nueva agenda": { "main": [[{ "node": "Notificar nueva agenda por Telegram", "type": "main", "index": 0 }]] }
+  }
+}

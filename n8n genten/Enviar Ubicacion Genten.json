@@ -1,0 +1,49 @@
+{
+  "id": "dYT7cOE8uh3jL0nr",
+  "name": "Enviar Ubicacion Genten",
+  "active": true,
+  "versionId": "f501b28a-0e46-4216-936e-42fbb4788dc3",
+  "activeVersionId": "f501b28a-0e46-4216-936e-42fbb4788dc3",
+  "createdAt": "2026-06-17T01:13:51.719Z",
+  "updatedAt": "2026-06-17T03:52:50.864Z",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "Ln2qjCBZFr4FwM1S",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [],
+  "meta": null,
+  "nodes": [
+    {
+      "parameters": { "workflowInputs": { "values": [{ "name": "telefono" }] } },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "id": "0ed21a0d-c198-48b4-a211-33cc94aae11c",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v17.0/1153146501223052/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('When Executed by Another Workflow').item.json.telefono, type: 'location', location: { latitude: -18.4644793, longitude: -70.2881011, name: 'Genten Status', address: 'Oscar Quina 1477, Arica' } }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [224, 0],
+      "id": "a50fa2ca-fd82-4e1d-bbe6-ae50b6cc5937",
+      "name": "Enviar pin de ubicación"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": { "main": [[{ "node": "Enviar pin de ubicación", "type": "main", "index": 0 }]] }
+  }
+}
