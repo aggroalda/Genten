@@ -1,0 +1,7 @@
+.DS_Store
+._*
+.env
+
+# frontend (add build tool output here once frontend starts)
+node_modules/
+dist/

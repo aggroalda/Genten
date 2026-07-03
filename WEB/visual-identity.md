@@ -1,57 +1,59 @@
 # Identidad Visual — Genten Detail
 
 ## Principio rector
-**Minimalista, mate, profesional.** Nada de cromados, brillos ni texturas
-recargadas. Menos es más. Debe funcionar igual de bien a 32px (favicon, foto de
-WhatsApp) que en grande, y reproducirse en **un solo color** (bordado, sellos,
-vinilo, boletas).
+**Vintage-artesanal, con oficio.** Se dejó atrás la línea minimalista mate
+inicial: la dirección definitiva es un emblema tipo taller/motero clásico
+(estilo western/vintage), con ilustración detallada de moto en vez de un ícono
+plano. Debe funcionar igual de bien a 32px (favicon, foto de WhatsApp) que en
+grande.
 
-## Paleta
+## Paleta `[ACTUALIZADA 2026-07-03]`
+
+Fuente: `logos/palet de colores.jpg`.
 
 | Rol | Nombre | HEX | Uso |
 |---|---|---|---|
-| Primario | Azul Acero | `#1F3A5F` | Fondos, títulos, confianza |
-| Acento | Rojo Óxido | `#B4463C` | **Solo** CTA y detalles puntuales |
-| Oscuro | Grafito | `#22272B` | Texto fuerte, footer |
-| Neutro | Gris Niebla | `#C9CDD1` | Bordes, líneas, secundarios |
-| Fondo | Blanco Hueso | `#F5F4F0` | Fondo general |
+| Primario oscuro | Dark Spruce | `#30442F` | Verde musgo, fondos oscuros, detalles de oficio |
+| Acento cálido | Black Cherry | `#6C1717` | Vino/rojo oscuro, CTA y detalles puntuales |
+| Neutro claro | Ash Grey | `#C2CCBD` | Fondos claros, emblema, contraste |
+| Oscuro azulado | Space Indigo | `#1B264F` | Fondos oscuros, texto fuerte |
+| Primario | French Blue | `#274690` | Azul principal, títulos, confianza |
 
-- El **azul** aporta confianza y profesionalismo.
-- El **rojo mate** aporta energía "moto", pero con moderación: si el rojo está
-  en todos lados, deja de guiar hacia el botón de agendar.
-- Tonos **apagados/mate** = premium y serio (no tuning llamativo).
+> Reemplaza la paleta anterior (Azul Acero `#1F3A5F` + Rojo Óxido `#B4463C` +
+> Grafito `#22272B` + Gris Niebla `#C9CDD1` + Blanco Hueso `#F5F4F0`), descartada
+> por decisión de Juan el 2026-07-03. Ver `decisions.md`.
 
-## Tipografía
+## Tipografía `[ACTUALIZADA 2026-07-03]`
+
+Fuente: `logos/tipografia.jpg`.
 
 | Uso | Fuente | Alternativa web-safe |
 |---|---|---|
-| Titulares | **Space Grotesk** (bold) | Arial / Helvetica |
-| Cuerpo | **Inter** | system-ui, sans-serif |
+| Titulares / logotipo | **Rye** (serif vintage/western) | Georgia / serif |
+| Subtítulos / texto curvo del logo | **Varela Round** | Arial Rounded / sans-serif |
+| Cuerpo de texto y UI | **Inter** | system-ui, sans-serif |
 
-Space Grotesk tiene un aire geométrico-mecánico que combina con motos sin ser
-agresivo. Inter es limpísima y muy legible en móvil.
+> Reemplaza la combinación anterior (Space Grotesk + Inter). Rye aporta el
+> carácter "taller clásico / motero" del nuevo emblema; Varela Round suaviza
+> subtítulos y texto curvo; Inter se mantiene para cuerpo y UI por legibilidad
+> en móvil.
 
-## Logo — dirección definida
+## Logo — definido `[APROBADO 2026-07-03]`
 
-**NO** usar los renders cromados generados por IA (ver razones en `AGENTS.md`).
-Se conserva el ADN, no la ejecución.
+Assets finales en `/logos`:
+- `logo .svg` — logotipo/emblema principal (ilustración detallada de moto de
+  perfil, multicolor plano según la paleta nueva).
+- `header.svg` — variante para uso en header/banner.
 
-Propuesta:
-- **Wordmark** "GENTEN" en Space Grotesk bold + "DETAIL" más pequeño, espaciado,
-  debajo.
-- **Ícono** simple: silueta lateral de moto reducida a lo esencial + una gota o
-  destello.
-- Todo **plano**, máximo **2 colores** (azul acero + rojo óxido).
-- **Versión en 1 color** obligatoria para bordado/sellos/vinilo.
-- Si se mantiene emblema circular: un **círculo de línea fina y limpia**, no un
-  anillo cromado.
+Este logo **reemplaza** la dirección de wordmark plano + ícono minimalista
+descrita anteriormente en este archivo, y también reemplaza el objetivo de
+"logo vectorial minimalista" de `AGENTS.md`. Aprobado explícitamente por Juan.
 
-### ADN que sí se conserva de las referencias
-- Moto de perfil.
-- Idea de agua / brillo (representada de forma mínima: una gota).
-- Contención circular tipo emblema (opcional, en línea fina).
+### ADN conservado de las referencias iniciales
+- Moto de perfil, ahora renderizada con más detalle (no reducida a silueta).
+- Emblema/contención circular presente en la tipografía (ver `tipografia.jpg`).
 
 ## Estado
-- [ ] Logo vectorial `[POR DISEÑAR]`
-- [x] Paleta definida
-- [x] Tipografía definida
+- [x] Logo vectorial — **definido y aprobado** (`logos/logo .svg`, `logos/header.svg`)
+- [x] Paleta definida (actualizada 2026-07-03)
+- [x] Tipografía definida (actualizada 2026-07-03)

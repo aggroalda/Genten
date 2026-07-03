@@ -69,12 +69,13 @@ genten-detail/
 ## 6. Estado actual (actualizar con cada avance)
 
 - [x] Brief de estrategia definido
-- [x] Paleta y tipografía propuestas
+- [x] Paleta y tipografía definidas (actualizadas 2026-07-03, ver `visual-identity.md`)
 - [x] Blueprint de landing definido
+- [x] Logo definido y aprobado (`logos/logo .svg`, `logos/header.svg`) — dirección
+      vintage-artesanal, ya no minimalista/plana
 - [ ] Precios/servicios confirmados por Juan `[POR CONFIRMAR]`
-- [ ] Logo vectorial minimalista rediseñado
 - [ ] Fotos reales (antes/después) recopiladas
-- [ ] Landing en HTML/CSS construida
-- [ ] Número de WhatsApp real conectado al CTA `[POR CONFIRMAR]`
+- [x] Landing en HTML/CSS construida (`WEB/site/`, 2026-07-03)
+- [x] Número de WhatsApp real conectado al CTA (+56 9 5511 1948)
 
-_Última actualización: 2026-06-30_
+_Última actualización: 2026-07-03_
