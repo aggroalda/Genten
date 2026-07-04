@@ -108,7 +108,7 @@ h1, h2, h3 { margin: 0 0 .4em; line-height: 1.1; }
   position: sticky;
   top: 0;
   z-index: 40;
-  background: var(--blue);
+  background: var(--ash);
   border-bottom: 3px solid var(--indigo);
 }
 .site-header .wrap {
@@ -118,17 +118,11 @@ h1, h2, h3 { margin: 0 0 .4em; line-height: 1.1; }
   height: 68px;
 }
 .brand { display: flex; align-items: center; gap: 12px; }
-.brand img { height: 44px; width: auto; }
-.brand-name {
-  font-family: var(--font-display);
-  color: var(--ash);
-  font-size: 1.35rem;
-  letter-spacing: .02em;
-}
+.brand-header-img { height: 56px; width: auto; }
 .nav-links { display: flex; gap: 26px; }
 .nav-links a {
   font-family: var(--font-round);
-  color: var(--ash);
+  color: var(--ink);
   font-size: .95rem;
   opacity: .9;
 }
@@ -357,13 +351,13 @@ h1, h2, h3 { margin: 0 0 .4em; line-height: 1.1; }
 /* ==========================================================================
    11 · Footer
    ========================================================================== */
-.site-footer { background: var(--indigo); color: var(--ash); padding: 48px 0 30px; }
+.site-footer { background: var(--ash); color: var(--ink); padding: 48px 0 30px; }
 .footer-grid {
   display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 30px;
   padding-bottom: 30px; border-bottom: 1px solid rgba(194,204,189,.2);
 }
-.footer-grid img { height: 52px; margin-bottom: 12px; }
-.footer-grid h4 { font-family: var(--font-round); color: #fff; margin: 0 0 10px; }
+.footer-grid img { height: 56px; margin-bottom: 12px; }
+.footer-grid h4 { font-family: var(--font-round); color: var(--ink); margin: 0 0 10px; }
 .footer-grid a, .footer-grid p { font-size: .95rem; opacity: .88; margin: 4px 0; }
 .footer-grid a:hover { opacity: 1; text-decoration: underline; }
 .footer-bottom { text-align: center; padding-top: 22px; font-size: .85rem; opacity: .7; }
