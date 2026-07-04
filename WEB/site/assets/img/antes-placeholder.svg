@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Placeholder antes">
-  <rect width="800" height="600" fill="#30442F"/>
-  <rect x="16" y="16" width="768" height="568" fill="none" stroke="#C2CCBD" stroke-width="3" stroke-dasharray="14 10" opacity="0.55"/>
-  <g font-family="'Varela Round', Arial, sans-serif" text-anchor="middle" fill="#C2CCBD">
-    <text x="400" y="285" font-size="40" font-weight="700">ANTES</text>
-    <text x="400" y="330" font-size="22" opacity="0.85">[ FALTA FOTO REAL ]</text>
-  </g>
-</svg>
