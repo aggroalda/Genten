@@ -72,10 +72,11 @@ Al iniciar una sesión:
   - Propiedades: Titulo, Fecha (date, sin hora), Hora recepción (text — nota el espacio final), Vehículo (select: Auto/Camioneta/SUV/Moto), Servicio (select: 8 opciones canónicas), Estado (select: Reservado/En Progreso/Completado/Cancelado — activos: Reservado y En Progreso; Completado y Cancelado se excluyen de "próxima cita"), Precio (number), relación a Clientes Genten
   
 - **DB Clientes** (`collection://37180ded-c6cf-80fb-8e3a-000b8f70d2e5`)
+  - Propiedades: Nombre (title), Telefono (phone_number, opcional desde 2026-07-02), BSUID (rich_text, agregado 2026-07-02), Username (rich_text, agregado 2026-07-02), 📅 Agenda Genten (relation)
 
 - **System Prompt** (página `37180ded-c6cf-809b-ba44-e2c1f5e6986b`) — instrucciones de IA y restricciones
 
-- **Credencial Notion** (ID `b2xixVdrVdJ6kMFC`) — token OAuth para acceso a Notion
+- **Credencial Notion** (ID `G60H9I2wXkoUg3Dl`, nombre "Notion account", tipo `notionApi`) — token OAuth para acceso a Notion. (El ID `b2xixVdrVdJ6kMFC` documentado anteriormente aquí ya no existe en la instancia — corregido 2026-07-02.)
 
 ### Peculiaridades Clave
 
@@ -189,9 +190,34 @@ El workflow `Reagendar Cita Genten` actualiza la cita existente en Notion (cambi
 
 **Limitación conocida del nodo Notion:** `databasePage.archive` y `block.delete` no funcionan correctamente en esta instancia. Si en el futuro se necesita eliminar páginas de Notion desde n8n, la única vía es HTTP Request con credencial `httpHeaderAuth` configurada manualmente con el token Bearer de Notion.
 
+## Identidad de cliente (teléfono/BSUID) — Migración 2026-07-02
+
+WhatsApp introdujo **usernames** y **BSUID** (business-scoped user ID). Cuando un cliente adopta username y escribe por primera vez, el webhook de Cloud API puede entregar el BSUID **sin número de teléfono**. Se implementó una identidad híbrida:
+
+- **Si el webhook trae teléfono** → el teléfono sigue siendo la llave primaria. No se le pregunta nada al cliente.
+- **Si NO trae teléfono** (username adopter nuevo) → el **BSUID es la llave primaria**, y el agente pide el teléfono conversacionalmente durante el AGENDAMIENTO (para contacto del negocio, no como llave).
+
+**Nodo central — `Extraer identidad`** (Code, en `Genten Agent` justo después de `WhatsApp Trigger`): deriva de `messages[0].from` y `contacts[0]` los campos `telefono`, `bsuid`, `username`, `reply_id` (identificador para responder), `reply_is_phone` (bool) y `contact_key` (`telefono || bsuid`, usado en la sessionKey de memoria). El nodo hace `return [{ json: { ...entry, telefono, bsuid, ... } }]` — **debe preservar el payload original con el spread `...entry`**; una versión temprana lo omitió y eso borraba `messages`/`contacts`, rompiendo el enrutamiento de `Tipo de Mensaje`/`Filter` para el 100% de los mensajes (bug encontrado y corregido el 2026-07-02, ver `avances/2026-07-02-revision-y-tests.md`). Toda referencia a la identidad del cliente en el resto del workflow debe leer de `$('Extraer identidad').item.json.*`, no directamente de `WhatsApp Trigger`.
+
+**⚠️ Webhooks de estado:** WhatsApp entrega, por la misma suscripción `messages`, webhooks de **estado** (`statuses[]`: sent/delivered/read) cada vez que el bot envía una respuesta — y estos NO traen array `messages`. `Extraer identidad` tiene una guarda al inicio (`const msg = (entry.messages || [])[0]; if (!msg) return [];`) que descarta esos eventos devolviendo 0 items. Sin la guarda, el nodo crashea con `Cannot read properties of undefined` en cada acuse (bug 4 del 2026-07-02).
+
+**Nota BSUID en clientes tradicionales:** WhatsApp ya asigna un BSUID (`contacts[0].user_id`, formato `CL.xxx` en Chile) a **todos** los clientes, no solo a los que adoptaron username. Para un cliente tradicional el payload trae `wa_id` + `user_id` simultáneamente → `telefono` se llena desde `wa_id` y sigue siendo la llave (`contact_key = telefono`); el `bsuid` queda guardado de respaldo. El caso "solo BSUID sin teléfono" solo ocurre con username adopters que no comparten número.
+
+**Tests de funcionamiento interno:** `tests/extraer-identidad.test.mjs` (local, `node tests/extraer-identidad.test.mjs`) prueba la lógica de `Extraer identidad` de forma aislada — es una copia del jsCode del nodo, hay que mantenerla sincronizada manualmente. El workflow "Tests Internos Genten" (id `OaDBGcUsz3FzjFmU`, en el proyecto personal de n8n) corre 5 tests de lectura contra los sub-workflows de consulta. Para probar lógica de ramas (IF/Switch) sin efectos secundarios en Notion/Telegram, usar `prepare_test_pin_data` + `test_workflow` inyectando datos simulados en los nodos con credenciales — así el workflow corre completo pero sin escribir en producción.
+
+**⚠️ Limitación del MCP con nodos IF/Switch:** el parámetro `branch: "true"/"false"` en `addConnection` **no existe** en este MCP — solo `sourceIndex` (0 = primera salida, 1 = segunda). Usarlo causa que ambas ramas queden conectadas a la salida 0, dejando la salida 1 vacía (bug real encontrado dos veces el 2026-07-02). Siempre usar `sourceIndex` al conectar salidas de nodos IF/Switch, y verificar con `get_workflow_details` que cada salida tiene su propio array de conexiones.
+
+**Envío de mensajes salientes:** el campo `to` de la Cloud API solo acepta teléfonos; para BSUID se usa el campo `recipient`. Los nodos `Send message` y `Audio Error` (en `Genten Agent`) y `Enviar pin de ubicación` (en `Enviar Ubicacion Genten`) son ahora **HTTP Request** (no el nodo nativo WhatsApp, que no soporta `recipient`) con `jsonBody` construido dinámicamente: `to` si `reply_is_phone`/`es_telefono`, `recipient` si no.
+
+**⚠️ Paso manual pendiente:** el MCP de n8n no permite asignar credenciales a nodos HTTP Request de forma programática (bloqueo del propio tool, no de n8n). Los nodos `Send message` y `Audio Error` en `Genten Agent` quedaron **sin credencial asignada** tras la migración. Hay que entrar a la UI de n8n y asignarles manualmente la credencial `httpHeaderAuth` **"Whatsapp imagenes y audio"** (la misma que usa el nodo `Descargar Audio` del mismo workflow) — sin esto el bot no puede responder por WhatsApp. Ver `avances/PENDIENTES.md`.
+
+**Notion DB Clientes:** propiedades nuevas `BSUID` (rich_text) y `Username` (rich_text); `Telefono` (phone_number) ahora es opcional. Los nodos "Match cliente" en `Consultar Cita Cliente`, `Buscar Reserva Cancelable` y `Micro Servicio Agendar` matchean primero por `BSUID` exacto y si no hay match caen a `Telefono` (comparación por sufijo, solo dígitos) — importante: la rama BSUID compara el string crudo, sin la normalización `replace(/[^0-9]/g,'')` que sí se aplica a teléfonos (un BSUID alfanumérico quedaría vacío si se le aplicara esa regex).
+
+**Retrocompatibilidad:** mientras WhatsApp siga mandando teléfono, `contact_key = telefono` y todo se comporta exactamente igual que antes de esta migración (misma sessionKey, mismo matching). El BSUID solo entra en juego cuando falta el teléfono.
+
 ## Seguridad y Secretos
 
-- ⚠️ **Rota token Notion** `ntn_REDACTED_ROTATED` — fue expuesto en historial de git
+- ⚠️ **Rota token Notion** (redactado — ver credencial en n8n) — fue expuesto en historial de git
 - **OAuth MCP:** Requerido al inicio de sesión; los tokens son temporales
 - **No commits** de tokens raw en workflows — usa referencias de credenciales en UI de n8n
 
