@@ -1,0 +1,249 @@
+{
+  "id": "D1j74aX7U7TV7dt5",
+  "name": "Genten Chat Web",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "auto",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "=# IDENTIDAD\nEres el asistente virtual de Genten Detail, taller de detailing de motos (y otros vehículos) en Arica. Atiendes a los visitantes a través del chat de la página web, con un tono amable y directo. Objetivo: que el cliente concrete una reserva. Máximo 1 emoji por mensaje.\n\n# CONTEXTO DE SESIÓN\n- Fecha de hoy: {{ new Date().toLocaleDateString('en-CA', {timeZone:'America/Santiago'}) }}\n- Este chat es anónimo: no conoces el teléfono del cliente de antemano. Pídelo tú mismo cuando lo necesites (agendar, consultar, cancelar o reagendar una cita).\n\n# REGLAS INVIOLABLES\n1. Solo temas de Genten: servicios, precios, disponibilidad, agendamiento, cancelación, reagendamiento, consulta de cita, ubicación.\n   - Otro tema → \"Eso no lo manejo, pero si necesitas un lavado o detailing para tu vehículo, te ayudo 😊\"\n2. NUNCA asumas servicios, precios, disponibilidad ni citas. Usa la herramienta correcta SIEMPRE.\n3. NUNCA registres una reserva sin resumen explícito (nombre, teléfono, vehículo, servicio, fecha, hora) + \"Sí\" del cliente.\n4. Para cualquier acción sobre una cita existente (consultar, cancelar, reagendar), primero pide el teléfono del cliente si no te lo ha dado en esta conversación.\n5. Capacidad: máximo 2 vehículos por día (cualquier tipo). Recepción: 09:00–15:00.\n\n# FLUJOS (sigue el que corresponda)\n\n**CONSULTA DE PRECIO** (cliente pregunta: ¿cuánto cuesta?, ¿qué precios tienen?, tarifa, costo, etc.)\n→ Pregunta qué tipo de vehículo tiene (Auto/Camioneta/SUV/Moto)\n→ Llama consultar_servicios\n→ Muestra servicios + precios\n→ Si cliente dice \"quiero agendar\" → sigue AGENDAMIENTO\n→ Si solo consultaba → \"¡Quedamos a la espera! Cualquier duda, avísame 😊\"\n\n**AGENDAMIENTO** (cliente quiere agendar)\n→ Vehículo (Auto/Camioneta/SUV/Moto)\n→ Servicio: llama consultar_servicios, muestra menú\n→ Fecha: confirma fecha exacta (ej: \"¿viernes 6 de junio?\")\n→ Llama consultar_disponibilidad_notion\n   • Hay cupo → Hora (09:00–15:00)\n   • No hay → \"Sin cupo. ¿Otro día?\"\n→ Nombre y teléfono de contacto (obligatorios — sin teléfono no se puede agendar)\n→ Resumen (nombre, teléfono, vehículo, servicio, precio, fecha, hora)\n→ Solo si dice \"sí\": llama registrar_cita_confirmada\n\n**CONSULTA DE CITA** (cliente pregunta: ¿cuándo?, ¿qué tengo?, etc.)\n→ Si no tienes su teléfono en esta conversación, pídelo primero\n→ Llama consultar_cita_cliente\n→ Si existe: muestra servicio, vehículo, fecha, hora\n→ Si no existe: \"No encontré cita. ¿Quieres agendar?\"\n\n**CANCELACIÓN** (cliente quiere cancelar)\n→ Si no tienes su teléfono en esta conversación, pídelo primero\n→ Llama buscar_reserva_cancelable\n→ Muestra: servicio, vehículo, fecha, hora\n→ Pregunta: \"¿Esta? Responde Sí para confirmar\"\n→ Si dice \"sí\": llama cancelar_reserva_confirmada\n\n**REAGENDAMIENTO** (cliente quiere mover su cita)\n→ Si no tienes su teléfono en esta conversación, pídelo primero\n→ Llama buscar_reserva_cancelable\n→ Muestra: servicio, vehículo, fecha actual, hora\n→ Pregunta nueva fecha/hora\n→ Confirma fecha exacta\n→ Llama consultar_disponibilidad_notion (si cambia de día)\n→ Muestra resumen (de/hacia) + \"Sí para confirmar\"\n→ Si dice \"sí\": llama reagendar_cita_confirmada\n\n**UBICACIÓN** (cliente pide mapa/dirección)\n→ Si no tienes su teléfono en esta conversación, pídelo primero\n→ Llama enviar_ubicacion\n\n# HERRAMIENTAS\n- consultar_servicios(vehículo) → servicios + precios\n- consultar_disponibilidad_notion(fecha) → ¿hay cupo?\n- registrar_cita_confirmada(nombre, telefono, vehículo, servicio, fecha, hora)\n- consultar_cita_cliente(teléfono) → próxima cita\n- buscar_reserva_cancelable(teléfono) → reserva activa\n- cancelar_reserva_confirmada(page_id, datos)\n- reagendar_cita_confirmada(page_id, fecha, hora)\n- enviar_ubicacion(teléfono)\n\n# TALLER\nDirección: Oscar Quina 1477, Arica\nMapa: https://maps.app.goo.gl/uPqy4uagVkEu27jL7"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [224, 0],
+      "id": "d616b87c-bbbd-4198-a537-38303f0a04ba",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": { "__rl": true, "value": "gpt-4o-mini", "mode": "list", "cachedResultName": "gpt-4o-mini" },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [80, 208],
+      "id": "f159df9c-2efc-46c5-b190-3c54f0fc76b4",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "options": { "responseMode": "streaming", "loadPreviousSession": "memory", "allowedOrigins": "*" },
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none"
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [0, 0],
+      "id": "502ba522-a302-4d5e-a23e-818806ccdc9b",
+      "name": "When chat message received",
+      "webhookId": "648fb314-26da-4679-b18a-7f5d0e249040"
+    },
+    {
+      "id": "bed3dfc9-3c98-4a44-b9eb-c97837a6e43a",
+      "name": "Buffer Window Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [224, 300],
+      "parameters": { "sessionIdType": "fromInput", "contextWindowLength": 12 }
+    },
+    {
+      "id": "89b175ff-badd-4428-8d50-4fb31bef6a76",
+      "name": "consultar_servicios",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [480, -300],
+      "parameters": {
+        "description": "Obtén los servicios disponibles para un tipo de vehículo (Auto, Camioneta, SUV o Moto). Retorna lista con nombres, precios y descripciones.",
+        "workflowId": { "__rl": true, "value": "NnY3cPtza3ys29pf", "mode": "list", "cachedResultName": "Consultar Servicios Genten" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": { "vehiculo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('vehiculo', 'Tipo de vehículo: Auto, Camioneta, SUV o Moto', 'string') }}" },
+          "matchingColumns": ["vehiculo"],
+          "schema": [{ "id": "vehiculo", "displayName": "vehiculo", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }]
+        }
+      }
+    },
+    {
+      "id": "3bdef237-5251-4ee5-b964-f8b810728498",
+      "name": "consultar_disponibilidad_notion",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [640, -300],
+      "parameters": {
+        "description": "Úsala OBLIGATORIAMENTE antes de ofrecer o confirmar cualquier fecha. Pasa la fecha en formato YYYY-MM-DD. Devuelve disponibilidad_vehiculos (true/false), disponibilidad_motos (true/false), mensaje_vehiculos y mensaje_motos.",
+        "workflowId": { "__rl": true, "value": "5lbhx6ZMynMgTefM", "mode": "list", "cachedResultName": "Consultar Disponibilidad Genten" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": ["fecha"],
+          "schema": [{ "id": "fecha", "displayName": "fecha", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }]
+        }
+      }
+    },
+    {
+      "id": "b3a9611b-cb81-473a-8034-1a2a272e9f64",
+      "name": "registrar_cita_confirmada",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [800, -300],
+      "parameters": {
+        "description": "Crea una NUEVA reserva en Notion. Úsala SOLO cuando el cliente confirme explícitamente agendar una cita nueva, después de pedirle nombre y teléfono de contacto. NUNCA uses esta herramienta para reagendar o mover una cita existente — para eso usa reagendar_cita_confirmada.",
+        "workflowId": { "__rl": true, "value": "r2Cq0W0RQeZyDoBW", "mode": "list", "cachedResultName": "Micro Servicio Agendar" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nombre": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('nombre', ``, 'string') }}",
+            "telefono": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('telefono', 'Teléfono de contacto del cliente, con o sin +56', 'string') }}",
+            "servicio": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('servicio', ``, 'string') }}",
+            "hora": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('hora', ``, 'string') }}",
+            "vehiculo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('vehiculo', ``, 'string') }}",
+            "fecha_recepcion": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fecha_recepcion', `Fecha en formato YYYY-MM-DD`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "nombre", "displayName": "nombre", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "telefono", "displayName": "telefono", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "vehiculo", "displayName": "vehiculo", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "servicio", "displayName": "servicio", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "fecha_recepcion", "displayName": "fecha_recepcion", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "hora", "displayName": "hora", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }
+          ]
+        }
+      }
+    },
+    {
+      "id": "c29af3ae-187a-4993-adf6-45f92ea77f53",
+      "name": "consultar_cita_cliente",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [960, -300],
+      "parameters": {
+        "description": "Úsala cuando el cliente pregunte por los detalles de su cita: fecha, hora, servicio. Pasa el teléfono sin el símbolo + (ejemplo: 56995376063).",
+        "workflowId": { "__rl": true, "value": "sp05sloD3bOve14R", "mode": "list", "cachedResultName": "Consultar Cita Cliente Genten" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": { "telefono": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('telefono', `Número sin +`, 'string') }}" },
+          "matchingColumns": [],
+          "schema": [{ "id": "telefono", "displayName": "telefono", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }]
+        }
+      }
+    },
+    {
+      "id": "617e3681-ce26-439a-aca2-e2e97b6436e4",
+      "name": "buscar_reserva_cancelable",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [1120, -300],
+      "parameters": {
+        "description": "Úsala cuando el cliente quiera cancelar O reagendar (mover) su reserva. Pasa el teléfono en formato internacional (ej: +56986052530). Devuelve los detalles de la reserva activa (page_id, servicio, fecha, hora, vehiculo) y un mensaje para mostrar al cliente.",
+        "workflowId": { "__rl": true, "value": "icYoMxHASDhEcBd3", "mode": "list", "cachedResultName": "Buscar Reserva Cancelable Genten" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": { "telefono": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('telefono', 'Teléfono del cliente en formato internacional, ej: +56986052530', 'string') }}" },
+          "matchingColumns": [],
+          "schema": [{ "id": "telefono", "displayName": "telefono", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }]
+        }
+      }
+    },
+    {
+      "id": "1eb796f9-cc3a-4d3f-a8ef-e8ede7d6c88d",
+      "name": "cancelar_reserva_confirmada",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [1280, -300],
+      "parameters": {
+        "description": "Cancela DEFINITIVAMENTE una reserva. Úsala SOLO cuando el cliente quiera cancelar (no volver). NUNCA la uses si el cliente quiere reagendar (mover a otra fecha/hora) — en ese caso usa ÚNICAMENTE reagendar_cita_confirmada.",
+        "workflowId": { "__rl": true, "value": "k8RAoEZIDpMlPme8", "mode": "list", "cachedResultName": "Cancelar Reserva Genten" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "page_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('page_id', 'ID de la página Notion de la reserva, obtenido de buscar_reserva_cancelable', 'string') }}",
+            "nombre_cliente": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('nombre_cliente', 'Nombre del cliente', 'string') }}",
+            "fecha": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fecha', 'Fecha de la reserva en formato YYYY-MM-DD', 'string') }}",
+            "servicio": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('servicio', 'Nombre del servicio reservado', 'string') }}",
+            "vehiculo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('vehiculo', 'Tipo de vehículo', 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "page_id", "displayName": "page_id", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "nombre_cliente", "displayName": "nombre_cliente", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "fecha", "displayName": "fecha", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "servicio", "displayName": "servicio", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "vehiculo", "displayName": "vehiculo", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }
+          ]
+        }
+      }
+    },
+    {
+      "id": "01b41669-4b57-4122-8fe1-c5d822db5518",
+      "name": "reagendar_cita_confirmada",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [1440, -300],
+      "parameters": {
+        "description": "Mueve una cita existente a nueva fecha/hora. Úsala después del 'sí' del cliente en el flujo de reagendamiento. Esta herramienta maneja todo internamente — NO necesitas llamar cancelar_reserva_confirmada antes. Requiere el page_id de buscar_reserva_cancelable.",
+        "workflowId": { "__rl": true, "value": "nX4oSbUCpYJCBqM2", "mode": "list", "cachedResultName": "Reagendar Cita Genten" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "page_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('page_id', 'ID de la página Notion de la reserva, obtenido de buscar_reserva_cancelable', 'string') }}",
+            "nueva_fecha": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('nueva_fecha', 'Nueva fecha en formato YYYY-MM-DD', 'string') }}",
+            "nueva_hora": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('nueva_hora', 'Nueva hora de recepción en formato HH:MM (entre 09:00 y 15:00)', 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "page_id", "displayName": "page_id", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "nueva_fecha", "displayName": "nueva_fecha", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "nueva_hora", "displayName": "nueva_hora", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }
+          ]
+        }
+      }
+    },
+    {
+      "id": "34135e16-0d3d-4fb9-bf95-4328678f5a1d",
+      "name": "enviar_ubicacion",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [1600, -300],
+      "parameters": {
+        "description": "Úsala cuando el cliente pida el mapa o la ubicación del taller. Pasa el teléfono sin el símbolo +.",
+        "workflowId": { "__rl": true, "value": "dYT7cOE8uh3jL0nr", "mode": "list", "cachedResultName": "Enviar Ubicacion Genten" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": { "telefono": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('telefono', `Número sin +`, 'string') }}" },
+          "matchingColumns": [],
+          "schema": [{ "id": "telefono", "displayName": "telefono", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "OpenAI Chat Model": { "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]] },
+    "When chat message received": { "main": [[{ "node": "AI Agent", "type": "main", "index": 0 }]] },
+    "Buffer Window Memory": {
+      "ai_memory": [[
+        { "node": "AI Agent", "type": "ai_memory", "index": 0 },
+        { "node": "When chat message received", "type": "ai_memory", "index": 0 }
+      ]]
+    },
+    "consultar_servicios": { "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]] },
+    "consultar_disponibilidad_notion": { "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]] },
+    "registrar_cita_confirmada": { "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]] },
+    "consultar_cita_cliente": { "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]] },
+    "buscar_reserva_cancelable": { "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]] },
+    "cancelar_reserva_confirmada": { "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]] },
+    "reagendar_cita_confirmada": { "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]] },
+    "enviar_ubicacion": { "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

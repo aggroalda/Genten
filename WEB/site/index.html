@@ -13,6 +13,48 @@
 
   <link rel="icon" href="assets/logo.svg">
   <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Widget de chat IA (@n8n/chat) — estilo de marca Genten -->
+  <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
+  <style>
+    :root {
+      --chat--color-primary: #6C1717;      /* Black Cherry */
+      --chat--color-secondary: #30442F;    /* Dark Spruce */
+      --chat--color-dark: #1B264F;         /* Space Indigo */
+      --chat--color-light: #eef1ea;        /* Ash Grey aclarado */
+      --chat--toggle--background: #6C1717;
+      --chat--toggle--hover--background: #571212;
+      --chat--toggle--active--background: #571212;
+      --chat--toggle--size: 60px;
+      --chat--header--background: #1B264F;
+      --chat--header--color: #eef1ea;
+      --chat--message--bot--background: #ffffff;
+      --chat--message--user--background: #30442F;
+      --chat--message--user--color: #eef1ea;
+      --chat--border-radius: 14px;
+      --chat--font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+    /* Apilado arriba del botón flotante de WhatsApp (60px, right/bottom 18px) */
+    .chat-window-wrapper { right: 18px !important; bottom: 92px !important; }
+    /* "Escribiendo" antes de los puntos animados mientras n8n procesa.
+       El wrapper trae max-width:80px (solo para los 3 puntos); lo liberamos
+       para que quepa el texto en una sola línea, sin descuadrarse. */
+    .chat-message-typing { max-width: none !important; }
+    .chat-message-typing .chat-message-typing-body {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+    }
+    .chat-message-typing-body::before {
+      content: "Escribiendo";
+      margin-right: 8px;
+      font-size: .85rem;
+      line-height: 1;
+      white-space: nowrap;
+      opacity: .75;
+    }
+  </style>
 </head>
 <body>
 
@@ -254,6 +296,10 @@
     <span>Agenda por WhatsApp</span>
   </a>
 
+  <!-- Widget de chat IA -->
+  <div id="n8n-chat"></div>
+
   <script src="js/main.js"></script>
+  <script type="module" src="js/chat.js"></script>
 </body>
 </html>
