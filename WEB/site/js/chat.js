@@ -11,7 +11,17 @@ import { createChat } from "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bun
 // webhook responde 500 y ni siquiera ejecuta el workflow).
 const CHAT_WEBHOOK_URL = "https://n8n.jalda.xyz/webhook/648fb314-26da-4679-b18a-7f5d0e249040/chat";
 const AUTO_OPEN_DELAY_MS = 5000;
+// En móvil la ventana cubre casi toda la pantalla, así que se espera más para
+// que el visitante alcance a ver el hero antes de que aparezca el chat.
+const AUTO_OPEN_DELAY_MOBILE_MS = 15000;
+const MOBILE_BREAKPOINT = 768;
 const AUTO_OPEN_FLAG = "genten_chat_auto_opened";
+
+function autoOpenDelay() {
+  return window.innerWidth < MOBILE_BREAKPOINT
+    ? AUTO_OPEN_DELAY_MOBILE_MS
+    : AUTO_OPEN_DELAY_MS;
+}
 
 /* El widget @n8n/chat solo trae textos en inglés. Al fijar defaultLanguage
    distinto de 'en' hay que entregar el bloque i18n correspondiente; si no,
@@ -70,7 +80,7 @@ function initAutoOpen() {
       if (sessionStorage.getItem(AUTO_OPEN_FLAG)) return;
       toggle.click();
       markAutoOpenHandled();
-    }, AUTO_OPEN_DELAY_MS);
+    }, autoOpenDelay());
   }, 200);
 }
 

@@ -394,3 +394,16 @@ h1, h2, h3 { margin: 0 0 .4em; line-height: 1.1; }
   .header-cta .btn-label { display: none; }
   .ba-pair { grid-template-columns: 1fr; }
 }
+
+/* En móvil hay dos botones flotantes apilados (chat + WhatsApp). Se achican
+   para estorbar menos sobre los CTA de ancho completo, y se le da aire al
+   final de la página para que no queden encima del CTA final ni del footer. */
+@media (max-width: 767px) {
+  /* Lado a lado (no apilados): así la fila de flotantes mide 48px de alto y
+     no sube hasta el CTA del hero. WhatsApp queda a la izquierda del chat
+     porque el contenedor del chat también ancla la ventana al abrirse. */
+  .wa-float { width: 48px; height: 48px; right: 74px; bottom: 14px; }
+  .wa-float .wa-ico { width: 24px; height: 24px; }
+  .cta-final { padding-bottom: 110px; }
+  .site-footer { padding-bottom: 100px; }
+}
