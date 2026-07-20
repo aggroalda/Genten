@@ -63,7 +63,7 @@ Al iniciar una sesión:
 | Reagendar Cita Genten.json | `nX4oSbUCpYJCBqM2` | Reagenda una cita: lee reserva por page_id, re-valida disponibilidad server-side, actualiza Fecha+Hora en Notion, notifica Telegram; tool del AI Agent |
 | Enviar Ubicacion Genten.json | `dYT7cOE8uh3jL0nr` | Envía pin de ubicación por WhatsApp |
 | Manejador de Errores Genten.json | `Ln2qjCBZFr4FwM1S` | Manejador de errores — envía alertas a Telegram |
-| Genten Chat Web.json | `D1j74aX7U7TV7dt5` | Punto de entrada del widget de chat embebido en la landing (`WEB/`). Chat Trigger (modo Embedded Chat, streaming) + AI Agent con Buffer Window Memory (sin BD, memoria solo de la sesión activa) — reutiliza las mismas 7 tool-workflows que "Genten Agent" (WhatsApp); `registrar_cita_confirmada` toma `telefono` vía `$fromAI` en vez del sender de WhatsApp, porque el agente debe pedirlo en la conversación. Workflow reutilizado (antes "main", una demo genérica con Supabase RAG no relacionada a Genten — reemplazada por completo el 2026-07-20). |
+| Genten Chat Web.json | `D1j74aX7U7TV7dt5` | Punto de entrada del widget de chat embebido en la landing (`WEB/`). Chat Trigger (modo Embedded Chat, streaming, webhook con sufijo `/chat`) + AI Agent (**gpt-4.1-mini**, temp 0.3) con Buffer Window Memory (sin BD, memoria solo de la sesión activa) — reutiliza las mismas 8 tool-workflows que "Genten Agent" (WhatsApp); `registrar_cita_confirmada` toma `telefono` vía `$fromAI` en vez del sender de WhatsApp, porque el agente debe pedirlo en la conversación. Workflow reutilizado (antes "main", una demo genérica con Supabase RAG no relacionada a Genten — reemplazada por completo el 2026-07-20). Detalle y bugs corregidos: `avances/2026-07-20-chat-web-genten.md`. |
 
 ## Configuración Notion
 

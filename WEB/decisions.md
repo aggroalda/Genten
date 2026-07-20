@@ -51,14 +51,41 @@
 - **Número de WhatsApp real conectado**: +56 9 5511 1948, en `WEB/site/js/main.js`
   (constante `WHATSAPP.phone`). Todos los CTAs de la landing ya apuntan a este número.
 
+**2026-07-20 (chat IA + producción)**
+- **Landing publicada en producción.**
+- **Asistente virtual IA (chat) embebido en la landing.** Widget oficial
+  `@n8n/chat` (vía CDN, sin backend propio en el sitio), con branding Genten,
+  auto-apertura a los 5s (una vez por sesión de navegador) e indicador
+  "Escribiendo". El "cerebro" vive en el workflow n8n **"Genten Chat Web"**
+  (`D1j74aX7U7TV7dt5`), que reutiliza las mismas herramientas de Notion que el
+  agente de WhatsApp (precios, disponibilidad, agendar, cancelar, reagendar,
+  ubicación) con memoria de sesión (sin base de datos). Archivos:
+  `WEB/site/js/chat.js` + `<style>` en `WEB/site/index.html`.
+- **Decisión de alcance:** el chat es un canal **adicional**; los CTA de texto
+  de la landing se mantienen apuntando a WhatsApp (sin cambios).
+- **CONFIRMADO: Genten sí atiende autos** (además de motos, camionetas y SUV).
+  Verificado contra la BD Notion "Servicios Genten", que tiene 4 servicios de
+  auto: Lavado completo ext+int $45.000, Limpieza interior $20.000, Lavado
+  completo exterior $20.000, Lavado básico exterior $15.000. Esto resuelve el
+  pendiente del FAQ "¿lavan autos?" → **sí**.
+- Detalle técnico del backend y las correcciones del prompt en
+  `n8n genten/avances/2026-07-20-chat-web-genten.md`.
+
 ## Pendientes (`[POR CONFIRMAR]` con Juan)
-- [ ] Precios y contenido exacto de cada paquete de servicio.
 - [ ] Mensaje pre-cargado del WhatsApp por sección (revisar redacción final).
-- [ ] Dirección, horarios y redes (Instagram).
-- [ ] ¿Lavan autos además de motos? ¿Domicilio? (para el FAQ).
+- [ ] Redes (Instagram).
 - [ ] Fotos reales: hero + antes/después.
 - [ ] Testimonios reales de clientes.
-- [ ] Hosting / dominio para publicar.
+- [ ] Actualizar el FAQ de la landing ("¿Lavan autos también? POR CONFIRMAR")
+      ahora que está confirmado que **sí** atienden autos.
+
+## Resueltos
+- [x] Precios y servicios (motos y autos) — confirmados y viviendo en Notion
+      ("Servicios Genten"), consumidos por el chat IA.
+- [x] Dirección y horario — Oscar Quina #1477, Arica; atención solo con previa
+      agenda.
+- [x] ¿Lavan autos además de motos? → **Sí** (confirmado 2026-07-20).
+- [x] Hosting / dominio — landing publicada en producción (2026-07-20).
 
 ## Ideas guardadas (no decididas)
 - Botón de WhatsApp flotante sticky en móvil.

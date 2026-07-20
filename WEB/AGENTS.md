@@ -77,5 +77,11 @@ genten-detail/
 - [ ] Fotos reales (antes/después) recopiladas
 - [x] Landing en HTML/CSS construida (`WEB/site/`, 2026-07-03)
 - [x] Número de WhatsApp real conectado al CTA (+56 9 5511 1948)
+- [x] Landing publicada en producción (2026-07-20)
+- [x] Asistente virtual IA (chat) embebido en la landing (2026-07-20) —
+      widget `@n8n/chat`, auto-abre a los 5s, responde precios/servicios y
+      agenda; backend en workflow n8n "Genten Chat Web". Los CTA de WhatsApp
+      se mantienen como canal adicional. Ver `WEB/site/js/chat.js` y
+      `n8n genten/avances/2026-07-20-chat-web-genten.md`.
 
-_Última actualización: 2026-07-03_
+_Última actualización: 2026-07-20_
