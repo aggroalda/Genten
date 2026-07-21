@@ -14,6 +14,10 @@
   <link rel="icon" href="assets/logo.svg">
   <link rel="stylesheet" href="css/styles.css">
 
+  <!-- La foto del hero se pide de inmediato, sin esperar a que resuelvan el CSS
+       ni las fuentes de Google (que son render-blocking). -->
+  <link rel="preload" as="image" href="assets/img/hero.webp" fetchpriority="high">
+
   <!-- Widget de chat IA (@n8n/chat) — estilo de marca Genten -->
   <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
   <style>
@@ -100,7 +104,8 @@
           </a>
         </div>
         <div class="hero-media">
-          <img src="assets/img/hero.webp" alt="Moto detallada por Genten">
+          <img src="assets/img/hero.webp" alt="Moto detallada por Genten"
+               width="1000" height="750" decoding="async" fetchpriority="high">
         </div>
       </div>
     </section>
@@ -209,17 +214,26 @@
         <h2 class="display">Mira la diferencia</h2>
         <div class="ba" data-ba>
           <div class="ba-track">
+            <!-- La galería va bajo el fold: loading="lazy" para que no compita
+                 con la primera pantalla. El aspect-ratio 4/3 del CSS ya reserva
+                 el espacio, así que no hay salto de layout al cargar. -->
             <div class="ba-pair">
-              <img src="assets/img/antes-1.webp" alt="Antes del detailing en Genten">
-              <img src="assets/img/despues-1.webp" alt="Después del detailing en Genten">
+              <img src="assets/img/antes-1.webp" alt="Antes del detailing en Genten"
+                   width="760" height="570" loading="lazy" decoding="async">
+              <img src="assets/img/despues-1.webp" alt="Después del detailing en Genten"
+                   width="760" height="570" loading="lazy" decoding="async">
             </div>
             <div class="ba-pair">
-              <img src="assets/img/antes-2.webp" alt="Antes del detailing en Genten">
-              <img src="assets/img/despues-2.webp" alt="Después del detailing en Genten">
+              <img src="assets/img/antes-2.webp" alt="Antes del detailing en Genten"
+                   width="760" height="950" loading="lazy" decoding="async">
+              <img src="assets/img/despues-2.webp" alt="Después del detailing en Genten"
+                   width="760" height="720" loading="lazy" decoding="async">
             </div>
             <div class="ba-pair">
-              <img src="assets/img/antes-3.webp" alt="Antes del detailing en Genten">
-              <img src="assets/img/despues-3.webp" alt="Después del detailing en Genten">
+              <img src="assets/img/antes-3.webp" alt="Antes del detailing en Genten"
+                   width="760" height="570" loading="lazy" decoding="async">
+              <img src="assets/img/despues-3.webp" alt="Después del detailing en Genten"
+                   width="760" height="570" loading="lazy" decoding="async">
             </div>
           </div>
           <button class="ba-nav ba-prev" aria-label="Anterior">‹</button>

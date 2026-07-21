@@ -282,7 +282,10 @@ h1, h2, h3 { margin: 0 0 .4em; line-height: 1.1; }
 }
 .ba-track { display: flex; transition: transform .4s ease; }
 .ba-pair { min-width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
-.ba-pair img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+/* height:auto es obligatorio: los atributos width/height del <img> (que están
+   ahí para reservar el espacio y evitar saltos de layout) actúan como CSS, y
+   sin esto el height del atributo pisa el aspect-ratio y estira la foto. */
+.ba-pair img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
 .ba-nav {
   position: absolute; top: 50%; transform: translateY(-50%);
   background: var(--cherry); color: #fff; border: 0;

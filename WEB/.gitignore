@@ -5,3 +5,7 @@
 # frontend (add build tool output here once frontend starts)
 node_modules/
 dist/
+
+# artefactos de pruebas con playwright-cli (snapshots, screenshots)
+.playwright-cli/
+.playwright/
